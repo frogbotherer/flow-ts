@@ -77,4 +77,18 @@ describe('WorkItem model', () => {
     expect(wi.effortRemaining).toEqual(6);
     expect(wi.effortRequired).toEqual(10);
   });
+  it('forbids work on an item flagged as done', () => {
+    const wo = new WorkOrder(0);
+    const wi = new WorkItem(wo);
+    wi.setEffort('test', 5);
+
+    wi.done = true;
+
+    expect(() => {
+      wi.doEffort(5);
+    }).toThrowError();
+    expect(() => {
+      wi.setEffort('run', 5);
+    }).toThrowError();
+  });
 });

@@ -25,6 +25,7 @@ class SinkState implements Receiver {
     this._sender = sender;
   }
   receive = (workItem: WorkItem) => {
+    workItem.done = true;
     this.workItems.push(workItem);
   };
 

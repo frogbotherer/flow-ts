@@ -8,21 +8,22 @@ type SystemContextProps = {};
 
 class SystemState {
   // NB. the ordering of senders is important; WorkItems should be consumed from right to left
-  private senders: Map<string, Sender> = new Map();
-  private receivers: Map<string, Receiver> = new Map();
+  private _senders: Map<string, Sender> = new Map();
+  private _receivers: Map<string, Receiver> = new Map();
+  private _ticks: number = 0;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
   registerSender = (sender: Sender, sendTo?: string) => {
-    this.senders.set(sender.name, sender);
+    this._senders.set(sender.name, sender);
 
     if (sendTo === undefined) {
       return;
     }
 
-    const receiver = this.receivers.get(sendTo);
+    const receiver = this._receivers.get(sendTo);
     if (receiver !== undefined) {
       sender.receiver = sendTo;
       receiver.sender = sender.name;
@@ -31,13 +32,13 @@ class SystemState {
     }
   };
   registerReceiver = (receiver: Receiver, receiveFrom?: string) => {
-    this.receivers.set(receiver.name, receiver);
+    this._receivers.set(receiver.name, receiver);
 
     if (receiveFrom === undefined) {
       return;
     }
 
-    const sender = this.senders.get(receiveFrom);
+    const sender = this._senders.get(receiveFrom);
     if (sender !== undefined) {
       receiver.sender = receiveFrom;
       sender.receiver = receiver.name;
@@ -49,16 +50,17 @@ class SystemState {
   };
   // the order in which things are processed will affect how the model works
   getOrderedSenders(): string[] {
-    return Array.from(this.senders.keys()).reverse();
+    return Array.from(this._senders.keys()).reverse();
   }
   getSender(senderName: string): Sender | undefined {
-    return this.senders.get(senderName);
+    return this._senders.get(senderName);
   }
   getReceiver(receiverName: string): Receiver | undefined {
-    return this.receivers.get(receiverName);
+    return this._receivers.get(receiverName);
   }
 
   tick() {
+    this._ticks += 1;
     // * fetch a list of senders, ordered right-to-left
     // * for each sender, call sender.send()
     for (const senderName of this.getOrderedSenders()) {
@@ -70,6 +72,9 @@ class SystemState {
         }
       }
     }
+  }
+  get ticks() {
+    return this._ticks;
   }
 }
 
