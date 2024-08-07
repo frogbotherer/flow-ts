@@ -68,7 +68,7 @@ class SystemState {
       if (s !== undefined && s.receiver !== null) {
         const r = this.getReceiver(s.receiver);
         if (r !== undefined) {
-          s.send(r);
+          s.send(r, this._ticks);
         }
       }
     }

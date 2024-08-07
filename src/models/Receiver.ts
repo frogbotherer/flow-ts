@@ -12,5 +12,5 @@ export interface Receiver {
   blocked: boolean;
 
   // receive a WorkItem from the set sender
-  receive: (workItem: WorkItem) => void;
+  receive: (workItem: WorkItem, time: number) => void;
 }

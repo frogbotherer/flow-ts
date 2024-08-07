@@ -49,7 +49,7 @@ class QueueState implements Sender, Receiver {
   set sender(sender: string | null) {
     this._sender = sender;
   }
-  send = (receiver: Receiver) => {
+  send = (receiver: Receiver, time: number) => {
     // fifo for now
     // NB. we need to pop and push on every call to "dirty" .workItems and trigger a
     //     re-render of the Queue
@@ -61,20 +61,20 @@ class QueueState implements Sender, Receiver {
         break;
       }
 
-      const effort = wi.doEffort(cap);
+      const effort = wi.doEffort(cap, time);
       cap -= effort;
 
       if (wi.effortRemaining === 0) {
-        receiver.receive(wi);
+        receiver.receive(wi, time);
       } else {
         this.workItems.push(wi);
       }
     }
   };
-  receive = (workItem: WorkItem) => {
+  receive = (workItem: WorkItem, time: number) => {
     // when we receive a WorkItem, calculate how much effort it will take to
     // process, based on the VariabilityDistribution.
-    workItem.setEffort(this.name, this._variabilityDistribution.generateOne());
+    workItem.setEffort(this.name, this._variabilityDistribution.generateOne(), time);
     this.workItems.unshift(workItem);
   };
 

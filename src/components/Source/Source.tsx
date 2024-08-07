@@ -23,12 +23,12 @@ class SourceState implements Sender {
   set receiver(receiver: string | null) {
     this._receiver = receiver;
   }
-  send = (receiver: Receiver) => {
+  send = (receiver: Receiver, time: number) => {
     // * generate some workItems to send, based on batchSize and model
-    const wo = new WorkOrder(this.batchSize);
+    const wo = new WorkOrder(this.batchSize, `${this.name}-${time}`, time);
     // * call receiver.receive on each item
     for (const wi of wo.workItems) {
-      receiver.receive(wi);
+      receiver.receive(wi, time);
     }
     this.batchSize = 0;
   };

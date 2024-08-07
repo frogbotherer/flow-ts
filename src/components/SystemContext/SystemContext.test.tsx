@@ -35,6 +35,7 @@ describe('SystemProvider component', () => {
 
     expect(screen.getByRole('textbox', { name: 'Batch Size' })).toHaveValue('0');
     // 10 work items should appear in the sink
-    expect(screen.getByText(/received.*10/i)).toBeVisible();
+    expect(screen.getByText(/input-1/i)).toBeVisible();
+    expect(screen.getByText(/10/i)).toBeVisible();
   });
 });

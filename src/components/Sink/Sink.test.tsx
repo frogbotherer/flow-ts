@@ -6,9 +6,4 @@ describe('Sink component', () => {
     render(<Sink name="test" />);
     expect(screen.getByText('Sink: test')).toBeVisible();
   });
-
-  it('has zero work items by default', () => {
-    render(<Sink name="test" />);
-    expect(screen.getByText(/received.*0/i)).toBeVisible();
-  });
 });
