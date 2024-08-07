@@ -26,6 +26,9 @@ export class WorkOrder {
   }
 
   get duration() {
-    return this.workItems.map((wi: WorkItem) => wi.duration).reduce((p, c) => (p > c ? p : c));
+    return (
+      this.workItems.map((wi: WorkItem) => wi.timeCompleted).reduce((p, c) => (p > c ? p : c)) -
+      this._timeStarted
+    );
   }
 }

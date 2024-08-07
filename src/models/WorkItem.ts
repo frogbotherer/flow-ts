@@ -86,10 +86,7 @@ export class WorkItem {
     this._done = true;
     this._timeCompleted = time;
   }
-  get duration() {
-    if (this._done) {
-      return this._timeCompleted - this._timeStarted;
-    }
-    return 0;
+  get timeCompleted() {
+    return this._timeCompleted;
   }
 }

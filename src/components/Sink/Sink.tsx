@@ -30,6 +30,12 @@ class SinkState implements Receiver {
     workItem.setDone(time);
     if (!this.workOrders.map((value: WorkOrder) => value.name).includes(workItem.workOrder.name)) {
       this.workOrders.push(workItem.workOrder);
+    } else {
+      // do something to workOrders to trigger a refresh
+      const wo = this.workOrders.pop();
+      if (wo !== undefined) {
+        this.workOrders.push(wo);
+      }
     }
   };
 
