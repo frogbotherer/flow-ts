@@ -50,7 +50,7 @@ export class WorkItem {
     const log = this._log[stage];
 
     if (log.effortRequired - log.effortExpended < effort) {
-      const e = effort - (log.effortRequired - log.effortExpended);
+      const e = log.effortRequired - log.effortExpended;
       log.effortExpended = log.effortRequired;
       // NB, we don't set _done since it might not be _done done_
       log.timeCompleted = time;

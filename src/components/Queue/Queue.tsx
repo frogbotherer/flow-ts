@@ -1,6 +1,7 @@
-import { Card, Text, RingProgress, Group } from '@mantine/core';
+import { Card, Text, RingProgress, Group, Popover, Button, NumberInput } from '@mantine/core';
 import { observer } from 'mobx-react';
 import { makeAutoObservable } from 'mobx';
+import { IconSettingsFilled } from '@tabler/icons-react';
 import { Receiver } from '@/models/Receiver';
 import { WorkItem } from '@/models/WorkItem';
 import { useSystemContext } from '../SystemContext/SystemContext';
@@ -26,12 +27,13 @@ Things that a queue should visualise:
  */
 
 /**
- * stateful part of the queue
+ * stateful part of the queue, including mid-model changes
  */
 class QueueState implements Sender, Receiver {
   workItems: WorkItem[] = [];
   private _variabilityDistribution: VariabilityDistribution;
   private _capacity: number;
+  static WORKING_HOURS: number = 8; // working hours in a day
 
   name: string;
   blocked: boolean = false;
@@ -53,7 +55,7 @@ class QueueState implements Sender, Receiver {
     // fifo for now
     // NB. we need to pop and push on every call to "dirty" .workItems and trigger a
     //     re-render of the Queue
-    let cap = this._capacity;
+    let cap = this._capacity * QueueState.WORKING_HOURS;
     while (cap > 0) {
       const wi = this.workItems.pop();
       if (wi === undefined) {
@@ -81,6 +83,9 @@ class QueueState implements Sender, Receiver {
   get capacity() {
     return this._capacity;
   }
+  set capacity(cap: number | string) {
+    this._capacity = +cap;
+  }
 
   /**
    * % WIP inside the queueing process
@@ -100,7 +105,7 @@ class QueueState implements Sender, Receiver {
     return `${wi.effortExpended}/${wi.effortRequired}`;
   }
 
-  constructor(name: string) {
+  constructor(name: string, capacity: number) {
     makeAutoObservable(this, {}, { autoBind: true });
     this.name = name;
 
@@ -109,12 +114,12 @@ class QueueState implements Sender, Receiver {
     this._variabilityDistribution = new ErlangDistribution(2, 10);
 
     this._variabilityDistribution.seed(name);
-    this._capacity = 16;
+    this._capacity = capacity;
   }
 }
 
 /**
- * props used by the UI
+ * props that define the behaviour of the model
  */
 type QueueProps = {
   name: string;
@@ -133,7 +138,7 @@ export const Queue = observer(({ name, sendTo, receiveFrom }: QueueProps) => {
   let state: QueueState | undefined = systemState.getSender(name) as QueueState;
   if (state === undefined) {
     // register this source as something that sends WorkItems
-    state = new QueueState(name);
+    state = new QueueState(name, 2);
     systemState.registerSender(state, sendTo);
   }
   if (systemState.getReceiver(name) === undefined) {
@@ -141,6 +146,9 @@ export const Queue = observer(({ name, sendTo, receiveFrom }: QueueProps) => {
     systemState.registerReceiver(state, receiveFrom);
   }
 
+  const setCapacity = (capacity: string | number) => {
+    state.capacity = capacity;
+  };
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Text fw={700}>Queue: {name}</Text>
@@ -158,6 +166,23 @@ export const Queue = observer(({ name, sendTo, receiveFrom }: QueueProps) => {
           sections={[{ value: state.wipPc, color: 'blue' }]}
         />
       </Group>
+      <Popover shadow="sm" trapFocus>
+        <Popover.Target>
+          <Button rightSection={<IconSettingsFilled />}>Configure</Button>
+        </Popover.Target>
+        <Popover.Dropdown>
+          <NumberInput
+            label="Capacity"
+            description="Number of team members"
+            placeholder="2"
+            min={1}
+            allowDecimal={false}
+            allowNegative={false}
+            value={state.capacity}
+            onChange={setCapacity}
+          />
+        </Popover.Dropdown>
+      </Popover>
     </Card>
   );
 });

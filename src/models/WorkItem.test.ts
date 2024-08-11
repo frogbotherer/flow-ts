@@ -53,7 +53,7 @@ describe('WorkItem model', () => {
     const wi = new WorkItem(wo, 0);
     wi.setEffort('test', 5, 0);
     const effort = wi.doEffort(8, 1);
-    expect(effort).toEqual(3);
+    expect(effort).toEqual(5);
     expect(wi.effortExpended).toEqual(5);
     expect(wi.effortRemaining).toEqual(0);
     expect(wi.effortRequired).toEqual(5);

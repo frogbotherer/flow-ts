@@ -81,7 +81,7 @@ export const Source = observer(({ name, sendTo }: SourceProps) => {
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Text fw={700}>Source: {name}</Text>
       <Text size="sm" c="dimmed">
-        some stuff
+        {state.batchSize}
       </Text>
       <Popover shadow="sm" trapFocus>
         <Popover.Target>
