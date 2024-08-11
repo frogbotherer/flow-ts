@@ -5,8 +5,8 @@ import { Receiver } from '@/models/Receiver';
 import { WorkItem } from '@/models/WorkItem';
 import { useSystemContext } from '../SystemContext/SystemContext';
 import { Sender } from '@/models/Sender';
-import { RandomDistribution } from '@/models/distributions/RandomDistribution';
 import { VariabilityDistribution } from '@/models/distributions/VariabilityDistribution';
+import { ErlangDistribution } from '@/models/distributions/ErlangDistribution';
 
 /**
 Things that a queue should model:
@@ -105,7 +105,9 @@ class QueueState implements Sender, Receiver {
     this.name = name;
 
     // TODO softcode all this
-    this._variabilityDistribution = new RandomDistribution(4, 40);
+    //this._variabilityDistribution = new RandomDistribution(4, 40);
+    this._variabilityDistribution = new ErlangDistribution(2, 10);
+
     this._variabilityDistribution.seed(name);
     this._capacity = 16;
   }
