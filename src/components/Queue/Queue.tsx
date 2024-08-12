@@ -35,10 +35,10 @@ export class QueueState implements Sender, Receiver {
   workItems: WorkItem[] = [];
   private _variabilityDistribution: VariabilityDistribution;
   private _capacity: number;
+  private _wipLimit: number;
   static WORKING_HOURS: number = 8; // working hours in a day
 
   name: string;
-  blocked: boolean = false;
   private _sender: string | null = null;
   private _receiver: string | null = null;
   get receiver() {
@@ -69,6 +69,11 @@ export class QueueState implements Sender, Receiver {
       cap -= effort;
 
       if (wi.effortRemaining === 0) {
+        if (receiver.blocked) {
+          // if we can't send the current items downstream; stop
+          this.workItems.push(wi);
+          break;
+        }
         receiver.receive(wi, time);
       } else {
         this.workItems.push(wi);
@@ -78,6 +83,9 @@ export class QueueState implements Sender, Receiver {
   receive = (workItem: WorkItem, time: number) => {
     // when we receive a WorkItem, calculate how much effort it will take to
     // process, based on the VariabilityDistribution.
+    if (this.blocked) {
+      throw Error(`attempted to exceed wip limit of ${this.name} with ${workItem}`);
+    }
     workItem.setEffort(this.name, this._variabilityDistribution.generateOne(), time);
     this.workItems.unshift(workItem);
   };
@@ -87,6 +95,21 @@ export class QueueState implements Sender, Receiver {
   }
   set capacity(cap: number | string) {
     this._capacity = +cap;
+  }
+  get wipLimit() {
+    return this._wipLimit;
+  }
+  set wipLimit(limit: number | string) {
+    this._wipLimit = +limit;
+  }
+
+  /**
+   * WIP limit implementation
+   *  _wipLimit = 0   -> any sized backlog is fine
+   *  _wipLimit > 0   -> backlog should not be larger than _wipLimit
+   */
+  get blocked() {
+    return this._wipLimit > 0 && this.workItems.length >= this._wipLimit;
   }
 
   /**
@@ -107,7 +130,7 @@ export class QueueState implements Sender, Receiver {
     return `${wi.effortExpended}/${wi.effortRequired}`;
   }
 
-  constructor(name: string, capacity: number) {
+  constructor(name: string, capacity: number, wipLimit = 0) {
     makeAutoObservable(this, {}, { autoBind: true });
     this.name = name;
 
@@ -117,6 +140,7 @@ export class QueueState implements Sender, Receiver {
 
     this._variabilityDistribution.seed(name);
     this._capacity = capacity;
+    this._wipLimit = wipLimit;
   }
 }
 
@@ -151,6 +175,9 @@ export const Queue = observer(({ name, sendTo, receiveFrom }: QueueProps) => {
   const setCapacity = (capacity: string | number) => {
     state.capacity = capacity;
   };
+  const setWipLimit = (limit: string | number) => {
+    state.wipLimit = limit;
+  };
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Text fw={700}>Queue: {name}</Text>
@@ -182,6 +209,16 @@ export const Queue = observer(({ name, sendTo, receiveFrom }: QueueProps) => {
             allowNegative={false}
             value={state.capacity}
             onChange={setCapacity}
+          />
+          <NumberInput
+            label="WIP Limit"
+            description="Max number of queued items"
+            placeholder="0"
+            min={0}
+            allowDecimal={false}
+            allowNegative={false}
+            value={state.wipLimit}
+            onChange={setWipLimit}
           />
         </Popover.Dropdown>
       </Popover>

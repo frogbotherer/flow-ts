@@ -71,4 +71,30 @@ describe('Queue component', () => {
     expect(wo.workItems[0].effortRemaining).toEqual(0);
     expect(wo.workItems[1].effortRemaining).toEqual(0);
   });
+  it('becomes blocked if wip limit is set and backlog is full', () => {
+    const qs = new QueueState('test', 1, 2);
+    const wo = new WorkOrder(3, 'test');
+    expect(qs.wipLimit).toEqual(2);
+    qs.receive(wo.workItems[0], 1);
+    expect(qs.blocked).toBeFalsy();
+
+    qs.receive(wo.workItems[1], 2);
+    expect(qs.blocked).toBeTruthy();
+
+    expect(() => {
+      qs.receive(wo.workItems[2], 3);
+    }).toThrowError();
+  });
+  it('becomes unblocked if wip limit is set and backlog is worked', () => {
+    const qs = new QueueState('test', 100, 2);
+    const wo = new WorkOrder(3, 'test');
+    const dr = new DummyReceiver();
+    expect(qs.wipLimit).toEqual(2);
+    qs.receive(wo.workItems[0], 1);
+    qs.receive(wo.workItems[1], 2);
+    expect(qs.blocked).toBeTruthy();
+
+    qs.send(dr, 3);
+    expect(qs.blocked).toBeFalsy();
+  });
 });

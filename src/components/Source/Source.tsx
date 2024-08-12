@@ -14,9 +14,9 @@ class SourceState implements Sender {
   private _model: Model = 'Erlang2';
 
   // Sender interface
-  blocked: boolean = false;
   name: string;
   private _receiver: string | null = null;
+  private _workOrder: WorkOrder | null = null;
   get receiver() {
     return this._receiver;
   }
@@ -25,12 +25,18 @@ class SourceState implements Sender {
   }
   send = (receiver: Receiver, time: number) => {
     // * generate some workItems to send, based on batchSize and model
-    const wo = new WorkOrder(this.batchSize, `${this.name}-${time}`, time);
-    // * call receiver.receive on each item
-    for (const wi of wo.workItems) {
-      receiver.receive(wi, time);
+    if (this._workOrder === null) {
+      this._workOrder = new WorkOrder(this.batchSize, `${this.name}-${time}`, time);
     }
-    this.batchSize = 0;
+    // * call receiver.receive on each item
+    while (this._batchSize > 0) {
+      if (receiver.blocked) {
+        return;
+      }
+      receiver.receive(this._workOrder.workItems[this._batchSize - 1], time);
+      this.batchSize -= 1;
+    }
+    this._workOrder = null;
   };
 
   constructor(name: string) {
@@ -55,6 +61,9 @@ class SourceState implements Sender {
   }
   public set batchSize(value: string | number) {
     this._batchSize = +value;
+  }
+  get blocked() {
+    return this._workOrder !== null;
   }
 }
 
@@ -97,6 +106,7 @@ export const Source = observer(({ name, sendTo }: SourceProps) => {
             allowNegative={false}
             value={state.batchSize}
             onChange={setBatchSize}
+            disabled={state.blocked}
           />
           <NativeSelect
             label="Distribution Model"
