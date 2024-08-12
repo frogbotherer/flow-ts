@@ -28,8 +28,10 @@ Things that a queue should visualise:
 
 /**
  * stateful part of the queue, including mid-model changes
+ *
+ * NB. only exported from the module so we can test it >:(
  */
-class QueueState implements Sender, Receiver {
+export class QueueState implements Sender, Receiver {
   workItems: WorkItem[] = [];
   private _variabilityDistribution: VariabilityDistribution;
   private _capacity: number;
