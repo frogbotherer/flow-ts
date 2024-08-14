@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import { Queue, QueueState } from './Queue';
 import { Receiver } from '@/models/Receiver';
 import { WorkOrder } from '@/models/WorkOrder';
+import { RandomDistribution } from '@/models/distributions/RandomDistribution';
 
 class DummyReceiver implements Receiver {
   name: string = 'dummy';
@@ -18,20 +19,20 @@ describe('Queue component', () => {
   });
 
   it('has a name and capacity', () => {
-    const qs = new QueueState('test', 2);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 2);
     expect(qs.name).toEqual('test');
     expect(qs.capacity).toEqual(2);
   });
 
   it('adds received workitems to its list', () => {
-    const qs = new QueueState('test', 2);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 2);
     const wo = new WorkOrder(1, 'test');
     qs.receive(wo.workItems[0], 1);
     expect(qs.workItems.length).toEqual(1);
     expect(qs.workItems[0]).toBe(wo.workItems[0]);
   });
   it('burns down workitem effort', () => {
-    const qs = new QueueState('test', 2);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 2);
     const wo = new WorkOrder(1, 'test');
     const dr = new DummyReceiver();
     qs.receive(wo.workItems[0], 1);
@@ -41,13 +42,13 @@ describe('Queue component', () => {
     expect(wo.workItems[0].effortRemaining).toEqual(4); // 20 - 2*8
   });
   it('does not crash when it is empty', () => {
-    const qs = new QueueState('test', 2);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 2);
     const dr = new DummyReceiver();
     qs.send(dr, 1);
     expect(dr.receive).not.toHaveBeenCalled();
   });
   it('sends workitems when the effort burns to zero', () => {
-    const qs = new QueueState('test', 2);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 2);
     const wo = new WorkOrder(1, 'test');
     const dr = new DummyReceiver();
     qs.receive(wo.workItems[0], 1);
@@ -58,7 +59,7 @@ describe('Queue component', () => {
     expect(wo.workItems[0].effortRemaining).toEqual(0);
   });
   it('sends multiple workitems when the capacity allows', () => {
-    const qs = new QueueState('test', 4);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 4);
     const wo = new WorkOrder(2, 'test');
     const dr = new DummyReceiver();
     qs.receive(wo.workItems[0], 1);
@@ -72,27 +73,27 @@ describe('Queue component', () => {
     expect(wo.workItems[1].effortRemaining).toEqual(0);
   });
   it('becomes blocked if wip limit is set and backlog is full', () => {
-    const qs = new QueueState('test', 1, 2);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 1, 2);
     const wo = new WorkOrder(3, 'test');
     expect(qs.wipLimit).toEqual(2);
     qs.receive(wo.workItems[0], 1);
-    expect(qs.sendBlocked).toBeFalsy();
+    expect(qs.receiveBlocked).toBeFalsy();
 
     qs.receive(wo.workItems[1], 2);
-    expect(qs.sendBlocked).toBeTruthy();
+    expect(qs.receiveBlocked).toBeTruthy();
 
     expect(() => {
       qs.receive(wo.workItems[2], 3);
     }).toThrowError();
   });
   it('becomes unblocked if wip limit is set and backlog is worked', () => {
-    const qs = new QueueState('test', 100, 2);
+    const qs = new QueueState('test', new RandomDistribution(1, 10), 100, 2);
     const wo = new WorkOrder(3, 'test');
     const dr = new DummyReceiver();
     expect(qs.wipLimit).toEqual(2);
     qs.receive(wo.workItems[0], 1);
     qs.receive(wo.workItems[1], 2);
-    expect(qs.sendBlocked).toBeTruthy();
+    expect(qs.receiveBlocked).toBeTruthy();
 
     qs.send(dr, 3);
     expect(qs.sendBlocked).toBeFalsy();

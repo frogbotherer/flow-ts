@@ -7,6 +7,7 @@ import { Clock } from '../components/Clock/Clock';
 import { SystemProvider } from '../components/SystemContext/SystemContext';
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
 import { Queue } from '@/components/Queue/Queue';
+import { ErlangDistribution } from '@/models/distributions/ErlangDistribution';
 
 export const HomePage = observer(() => (
   <>
@@ -15,9 +16,10 @@ export const HomePage = observer(() => (
       <Space h="xl" />
       <Group justify="center" align="start">
         <Source name="Input" />
-        <Queue name="Design" receiveFrom="Input" />
-        <Queue name="Build" receiveFrom="Design" />
-        <Sink name="Output" receiveFrom="Build" />
+        <Queue name="Design" receiveFrom="Input" distribution={new ErlangDistribution(2, 10)} />
+        <Queue name="Build" receiveFrom="Design" distribution={new ErlangDistribution(2, 10)} />
+        <Queue name="Test" receiveFrom="Build" distribution={new ErlangDistribution(2, 10)} />
+        <Sink name="Output" receiveFrom="Test" />
       </Group>
       <Space h="xl" />
       <Group justify="center">

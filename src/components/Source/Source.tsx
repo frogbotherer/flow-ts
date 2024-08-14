@@ -89,10 +89,8 @@ export const Source = observer(({ name, sendTo }: SourceProps) => {
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Text fw={700}>Source: {name}</Text>
-      <Text size="sm" c="dimmed">
-        <Text size="sm" c={state.sendBlocked ? 'red' : 'blue'}>
-          <b>{state.batchSize}</b> work item{state.batchSize !== 1 ? 's' : ''}
-        </Text>
+      <Text size="sm" c={state.sendBlocked ? 'red' : 'blue'}>
+        <b>{state.batchSize}</b> work item{state.batchSize !== 1 ? 's' : ''}
       </Text>
       <Popover shadow="sm" trapFocus>
         <Popover.Target>

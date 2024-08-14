@@ -86,7 +86,7 @@ export class QueueState implements Sender, Receiver {
   receive = (workItem: WorkItem, time: number) => {
     // when we receive a WorkItem, calculate how much effort it will take to
     // process, based on the VariabilityDistribution.
-    if (this.sendBlocked) {
+    if (this.receiveBlocked) {
       throw Error(`attempted to exceed wip limit of ${this.name} with ${workItem}`);
     }
     workItem.setEffort(this.name, this._variabilityDistribution.generateOne(), time);
@@ -136,13 +136,19 @@ export class QueueState implements Sender, Receiver {
     return `${wi.effortExpended}/${wi.effortRequired}`;
   }
 
-  constructor(name: string, capacity: number, wipLimit = 0) {
+  constructor(
+    name: string,
+    distribution: VariabilityDistribution,
+    capacity: number,
+    wipLimit: number = 0
+  ) {
     makeAutoObservable(this, {}, { autoBind: true });
     this.name = name;
 
     // TODO softcode all this
     //this._variabilityDistribution = new RandomDistribution(4, 40);
-    this._variabilityDistribution = new ErlangDistribution(2, 10);
+    // new ErlangDistribution(2, 10);
+    this._variabilityDistribution = distribution;
 
     this._variabilityDistribution.seed(name);
     this._capacity = capacity;
@@ -157,20 +163,26 @@ type QueueProps = {
   name: string;
   sendTo?: string;
   receiveFrom?: string;
+  distribution?: VariabilityDistribution;
 };
 
 /**
  * react UI element and bindings
  */
-export const Queue = observer(({ name, sendTo, receiveFrom }: QueueProps) => {
+export const Queue = observer(({ name, sendTo, receiveFrom, distribution }: QueueProps) => {
   const systemState = useSystemContext();
+
+  // if distribution is undefined ...
+  if (distribution === undefined) {
+    distribution = new ErlangDistribution(2, 10);
+  }
 
   // the queue needs to be both a sender and a receiver.
   // one or both of sendTo and receiveFrom may be set
   let state: QueueState | undefined = systemState.getSender(name) as QueueState;
   if (state === undefined) {
     // register this source as something that sends WorkItems
-    state = new QueueState(name, 2);
+    state = new QueueState(name, distribution, 2);
     systemState.registerSender(state, sendTo);
   }
   if (systemState.getReceiver(name) === undefined) {
