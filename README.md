@@ -3,7 +3,6 @@
 ## TODO
 
 - tests for Source
-- split up Sender.blocked and Receiver.blocked into .sendBlocked and .receiveBlocked
 
 ## Features
 

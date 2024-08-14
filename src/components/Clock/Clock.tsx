@@ -2,6 +2,7 @@ import { Card, Slider, ActionIcon, Group } from '@mantine/core';
 import { IconClockPlay } from '@tabler/icons-react';
 import { useState } from 'react';
 import { observer } from 'mobx-react';
+import { useInterval } from '@mantine/hooks';
 import { useSystemContext } from '../SystemContext/SystemContext';
 
 interface ClockState {
@@ -15,11 +16,17 @@ export const Clock = observer(({ max, unit }: ClockProps) => {
   const [state, setState] = useState<ClockState>({ countDown: 1 });
   const setCountDown = (countDown: number) => setState({ countDown });
   const systemState = useSystemContext();
+  const interval = useInterval(() => {
+    doCountDown();
+  }, 200);
 
   function doCountDown() {
+    systemState.tick();
     if (state.countDown > 0) {
       setCountDown(state.countDown - 1);
-      systemState.tick();
+      interval.start();
+    } else {
+      interval.stop();
     }
   }
 
