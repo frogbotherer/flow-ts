@@ -12,5 +12,5 @@ export interface Sender {
   sendBlocked: boolean;
 
   // attempt to send WorkItem(s) to the set Receiver
-  send: (systemState: Receiver, time: number) => void;
+  send: (receiver: Receiver, time: number) => void;
 }

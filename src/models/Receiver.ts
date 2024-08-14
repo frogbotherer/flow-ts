@@ -5,8 +5,8 @@ export interface Receiver {
   // name
   name: string;
 
-  // connect to a Sender
-  sender: string | null;
+  // connect to one or more Senders
+  senders: Array<string>;
 
   // whether the Receiver is blocked from processing
   receiveBlocked: boolean;

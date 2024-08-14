@@ -12,19 +12,18 @@ type SinkProps = {
 };
 
 class SinkState implements Receiver {
-  //workItems: WorkItem[] = [];
   workOrders: WorkOrder[] = [];
 
   // receiver interface
   name: string;
   receiveBlocked: boolean = false;
-  private _sender: string | null = null;
+  private _senders: Array<string> = [];
 
-  get sender() {
-    return this._sender;
+  get senders() {
+    return this._senders;
   }
-  set sender(sender: string | null) {
-    this._sender = sender;
+  set senders(senders) {
+    this._senders = senders;
   }
   receive = (workItem: WorkItem, time: number) => {
     workItem.setDone(time);

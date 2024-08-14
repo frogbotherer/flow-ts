@@ -26,7 +26,7 @@ class SystemState {
     const receiver = this._receivers.get(sendTo);
     if (receiver !== undefined) {
       sender.receiver = sendTo;
-      receiver.sender = sender.name;
+      receiver.senders.push(sender.name);
     } else {
       throw new TypeError(`Sender ${sender.name} links to receiver ${sendTo} that does not exist`);
     }
@@ -40,7 +40,7 @@ class SystemState {
 
     const sender = this._senders.get(receiveFrom);
     if (sender !== undefined) {
-      receiver.sender = receiveFrom;
+      receiver.senders.push(receiveFrom);
       sender.receiver = receiver.name;
     } else {
       throw new TypeError(

@@ -40,7 +40,7 @@ export class QueueState implements Sender, Receiver {
   static WORKING_HOURS: number = 8; // working hours in a day
 
   name: string;
-  private _sender: string | null = null;
+  private _senders: Array<string> = [];
   private _receiver: string | null = null;
   get receiver() {
     return this._receiver;
@@ -48,11 +48,11 @@ export class QueueState implements Sender, Receiver {
   set receiver(receiver: string | null) {
     this._receiver = receiver;
   }
-  get sender() {
-    return this._sender;
+  get senders() {
+    return this._senders;
   }
-  set sender(sender: string | null) {
-    this._sender = sender;
+  set senders(senders: Array<string>) {
+    this._senders = senders;
   }
   send = (receiver: Receiver, time: number) => {
     // fifo for now
@@ -144,12 +144,8 @@ export class QueueState implements Sender, Receiver {
   ) {
     makeAutoObservable(this, {}, { autoBind: true });
     this.name = name;
-
-    // TODO softcode all this
-    //this._variabilityDistribution = new RandomDistribution(4, 40);
-    // new ErlangDistribution(2, 10);
     this._variabilityDistribution = distribution;
-
+    // seed the distribution from the name of the component so behaviour is predictable(?!)
     this._variabilityDistribution.seed(name);
     this._capacity = capacity;
     this._wipLimit = wipLimit;

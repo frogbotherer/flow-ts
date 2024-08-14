@@ -57,6 +57,6 @@ export abstract class VariabilityDistribution {
   }
 
   constructor() {
-    this.seed(0xdeadbeef);
+    this.seed(0xdecafbad);
   }
 }
