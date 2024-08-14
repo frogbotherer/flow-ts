@@ -17,7 +17,7 @@ class SinkState implements Receiver {
 
   // receiver interface
   name: string;
-  blocked: boolean = false;
+  receiveBlocked: boolean = false;
   private _sender: string | null = null;
 
   get sender() {

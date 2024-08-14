@@ -9,7 +9,7 @@ export interface Receiver {
   sender: string | null;
 
   // whether the Receiver is blocked from processing
-  blocked: boolean;
+  receiveBlocked: boolean;
 
   // receive a WorkItem from the set sender
   receive: (workItem: WorkItem, time: number) => void;

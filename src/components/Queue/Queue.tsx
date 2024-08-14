@@ -36,6 +36,7 @@ export class QueueState implements Sender, Receiver {
   private _variabilityDistribution: VariabilityDistribution;
   private _capacity: number;
   private _wipLimit: number;
+  private _sendBlocked: boolean = false;
   static WORKING_HOURS: number = 8; // working hours in a day
 
   name: string;
@@ -58,6 +59,8 @@ export class QueueState implements Sender, Receiver {
     // NB. we need to pop and push on every call to "dirty" .workItems and trigger a
     //     re-render of the Queue
     let cap = this._capacity * QueueState.WORKING_HOURS;
+    this._sendBlocked = receiver.receiveBlocked;
+
     while (cap > 0) {
       const wi = this.workItems.pop();
       if (wi === undefined) {
@@ -69,7 +72,7 @@ export class QueueState implements Sender, Receiver {
       cap -= effort;
 
       if (wi.effortRemaining === 0) {
-        if (receiver.blocked) {
+        if (receiver.receiveBlocked) {
           // if we can't send the current items downstream; stop
           this.workItems.push(wi);
           break;
@@ -83,7 +86,7 @@ export class QueueState implements Sender, Receiver {
   receive = (workItem: WorkItem, time: number) => {
     // when we receive a WorkItem, calculate how much effort it will take to
     // process, based on the VariabilityDistribution.
-    if (this.blocked) {
+    if (this.sendBlocked) {
       throw Error(`attempted to exceed wip limit of ${this.name} with ${workItem}`);
     }
     workItem.setEffort(this.name, this._variabilityDistribution.generateOne(), time);
@@ -108,8 +111,11 @@ export class QueueState implements Sender, Receiver {
    *  _wipLimit = 0   -> any sized backlog is fine
    *  _wipLimit > 0   -> backlog should not be larger than _wipLimit
    */
-  get blocked() {
+  get receiveBlocked() {
     return this._wipLimit > 0 && this.workItems.length >= this._wipLimit;
+  }
+  get sendBlocked() {
+    return this._sendBlocked;
   }
 
   /**
@@ -178,21 +184,23 @@ export const Queue = observer(({ name, sendTo, receiveFrom }: QueueProps) => {
   const setWipLimit = (limit: string | number) => {
     state.wipLimit = limit;
   };
+  const sendColour = state.sendBlocked ? 'red' : 'blue';
+  const receiveColour = state.receiveBlocked ? 'red' : 'blue';
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Text fw={700}>Queue: {name}</Text>
       <Group>
-        <Text size="sm" c="dimmed">
-          {state.workItems.length} work items
+        <Text size="sm" c={receiveColour}>
+          <b>{state.workItems.length}</b> work item{state.workItems.length !== 1 ? 's' : ''}
         </Text>
         <RingProgress
           size={80}
           label={
-            <Text size="xs" c="blue" ta="center">
+            <Text size="xs" c={sendColour} ta="center">
               {state.wipText}
             </Text>
           }
-          sections={[{ value: state.wipPc, color: 'blue' }]}
+          sections={[{ value: state.wipPc, color: sendColour }]}
         />
       </Group>
       <Popover shadow="sm" trapFocus>

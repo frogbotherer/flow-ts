@@ -9,7 +9,7 @@ export interface Sender {
   receiver: string | null;
 
   // whether the Sender is blocked from processing
-  blocked: boolean;
+  sendBlocked: boolean;
 
   // attempt to send WorkItem(s) to the set Receiver
   send: (systemState: Receiver, time: number) => void;

@@ -30,7 +30,7 @@ class SourceState implements Sender {
     }
     // * call receiver.receive on each item
     while (this._batchSize > 0) {
-      if (receiver.blocked) {
+      if (receiver.receiveBlocked) {
         return;
       }
       receiver.receive(this._workOrder.workItems[this._batchSize - 1], time);
@@ -62,7 +62,7 @@ class SourceState implements Sender {
   public set batchSize(value: string | number) {
     this._batchSize = +value;
   }
-  get blocked() {
+  get sendBlocked() {
     return this._workOrder !== null;
   }
 }
@@ -90,7 +90,9 @@ export const Source = observer(({ name, sendTo }: SourceProps) => {
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Text fw={700}>Source: {name}</Text>
       <Text size="sm" c="dimmed">
-        {state.batchSize}
+        <Text size="sm" c={state.sendBlocked ? 'red' : 'blue'}>
+          <b>{state.batchSize}</b> work item{state.batchSize !== 1 ? 's' : ''}
+        </Text>
       </Text>
       <Popover shadow="sm" trapFocus>
         <Popover.Target>
@@ -106,7 +108,7 @@ export const Source = observer(({ name, sendTo }: SourceProps) => {
             allowNegative={false}
             value={state.batchSize}
             onChange={setBatchSize}
-            disabled={state.blocked}
+            disabled={state.sendBlocked}
           />
           <NativeSelect
             label="Distribution Model"

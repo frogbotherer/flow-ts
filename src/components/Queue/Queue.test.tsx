@@ -7,7 +7,7 @@ import { WorkOrder } from '@/models/WorkOrder';
 class DummyReceiver implements Receiver {
   name: string = 'dummy';
   sender: string | null = null;
-  blocked: boolean = false;
+  receiveBlocked: boolean = false;
   receive = vi.fn();
 }
 
@@ -76,10 +76,10 @@ describe('Queue component', () => {
     const wo = new WorkOrder(3, 'test');
     expect(qs.wipLimit).toEqual(2);
     qs.receive(wo.workItems[0], 1);
-    expect(qs.blocked).toBeFalsy();
+    expect(qs.sendBlocked).toBeFalsy();
 
     qs.receive(wo.workItems[1], 2);
-    expect(qs.blocked).toBeTruthy();
+    expect(qs.sendBlocked).toBeTruthy();
 
     expect(() => {
       qs.receive(wo.workItems[2], 3);
@@ -92,9 +92,9 @@ describe('Queue component', () => {
     expect(qs.wipLimit).toEqual(2);
     qs.receive(wo.workItems[0], 1);
     qs.receive(wo.workItems[1], 2);
-    expect(qs.blocked).toBeTruthy();
+    expect(qs.sendBlocked).toBeTruthy();
 
     qs.send(dr, 3);
-    expect(qs.blocked).toBeFalsy();
+    expect(qs.sendBlocked).toBeFalsy();
   });
 });
