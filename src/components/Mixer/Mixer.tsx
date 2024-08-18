@@ -5,6 +5,8 @@ import { Sender } from '@/models/Sender';
 import { useSystemContext } from '../SystemContext/SystemContext';
 import { Receiver } from '@/models/Receiver';
 import { WorkItem } from '@/models/WorkItem';
+import { ShuffleDistribution } from '@/models/distributions/ShuffleDistribution';
+import { FaroShuffle } from '@/models/distributions/FaroShuffle';
 
 /**
  * state of the mixer
@@ -14,11 +16,14 @@ import { WorkItem } from '@/models/WorkItem';
 export class MixerState implements Sender, Receiver {
   public name: string;
   workItems: WorkItem[] = [];
+  private _shuffleDistribution: ShuffleDistribution;
   private _needsShuffle: boolean = false;
 
   constructor(name: string) {
     makeAutoObservable(this, {}, { autoBind: true });
     this.name = name;
+    this._shuffleDistribution = new FaroShuffle();
+    this._shuffleDistribution.seed(this.name);
   }
   private _senders: Array<string> = [];
   private _receiver: string | null = null;
@@ -48,7 +53,7 @@ export class MixerState implements Sender, Receiver {
   }
   send(receiver: Receiver, time: number) {
     if (this._needsShuffle) {
-      this.workItems.sort(() => this._rng() - 0.5);
+      this._shuffleDistribution.shuffle(this.workItems);
       this._needsShuffle = false;
     }
     while (this.workItems.length > 0) {
