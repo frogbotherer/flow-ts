@@ -1,4 +1,4 @@
-import { Card, Button, Text, Popover, NativeSelect, NumberInput } from '@mantine/core';
+import { Card, Button, Text, Popover, NativeSelect, NumberInput, Space } from '@mantine/core';
 import { IconSettingsFilled } from '@tabler/icons-react';
 import { observer } from 'mobx-react';
 import { makeAutoObservable } from 'mobx';
@@ -92,6 +92,7 @@ export const Source = observer(({ name, sendTo }: SourceProps) => {
       <Text size="sm" c={state.sendBlocked ? 'red' : 'blue'}>
         <b>{state.batchSize}</b> work item{state.batchSize !== 1 ? 's' : ''}
       </Text>
+      <Space h="sm" />
       <Popover shadow="sm" trapFocus>
         <Popover.Target>
           <Button rightSection={<IconSettingsFilled />}>Configure</Button>
